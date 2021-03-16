@@ -1,0 +1,45 @@
+rahman@rahman:~$ docker --version
+Docker version 20.10.5, build 55c4c88
+
+//create a container with data volume:
+
+rahman@rahman:~$ docker volume create --name datavolume1
+datavolume1
+rahman@rahman:~$ docker run -ti --name=container1 -v datavolume1:/DataVolume1 ubuntu 
+root@e1056875b8ef:/# echo "sharing files between containers" > /DataVolume1/Example.txt
+root@e1056875b8ef:/# exit
+exit
+
+//create a new container and add to the data volume:
+
+rahman@rahman:~$ docker run -ti --name=container2 --volumes-from container1 ubuntu 
+root@86cb75a9e1a2:/# echo "The message will appear in datavolume1" >> /DataVolume1/Example.txt
+root@86cb75a9e1a2:/# exit
+exit
+
+//verify the shared data between docker containers:
+
+rahman@rahman:~$ 
+rahman@rahman:~$ docker restart container1
+container1
+rahman@rahman:~$ cat /DataVolume1/Example.txt
+cat: /DataVolume1/Example.txt: No such file or directory
+rahman@rahman:~$ docker restart container1
+container1
+rahman@rahman:~$ docker restart container2
+container2
+rahman@rahman:~$ cat /DataVolume1/Example.txt
+cat: /DataVolume1/Example.txt: No such file or directory
+rahman@rahman:~$ docker ps
+CONTAINER ID   IMAGE     COMMAND       CREATED          STATUS              PORTS     NAMES
+86cb75a9e1a2   ubuntu    "/bin/bash"   16 minutes ago   Up About a minute             container2
+e1056875b8ef   ubuntu    "/bin/bash"   21 minutes ago   Up 2 minutes                  container1
+rahman@rahman:~$ sudo docker exec -t -i container1 bin/bash
+[sudo] password for rahman: 
+
+
+root@e1056875b8ef:/# cat /DataVolume1/Example.txt
+sharing files between containers
+The message will appear in datavolume1
+root@e1056875b8ef:/# exit
+exit
